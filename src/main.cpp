@@ -34,29 +34,34 @@ int main()
     shaders[0].loadFromFile("shaders/mandel.frag",sf::Shader::Fragment);
     shaders[1].loadFromFile("shaders/burningship.frag", sf::Shader::Fragment);
     shaders[2].loadFromFile("shaders/julia.frag", sf::Shader::Fragment);
-    float brightness = 1000.;
+    float brightness[3];
     int mode = 0;
     const int bufSize = 4096;
     const double sample_rate = 44100.0;
     const int max_freq = 4000;
     const double volume = 8000.0;
     const double decay = 0.990;
-    float zoom = 1.0;
-    float dx = 0.0;
-    float dy = 0.0;
+    float zoom[3];
+    float dx[3];
+    float dy[3];
     auto x = sf::VideoMode::getDesktopMode().width;
     auto y = sf::VideoMode::getDesktopMode().height;
     sf::RenderWindow window(sf::VideoMode(x, y,32), "Fractal Sounds");
     sf::RectangleShape shape(sf::Vector2f(x,y));
     //shape.setFillColor(sf::Color::Green);
     for(int i = 0; i < 3; i++){
+        brightness[i] = 1000.;
+        zoom[i] = 1;
+        dx[i] = 0;
+        dy[i] = 0;
         shaders[i].setParameter("res", (float)std::min(x,y));
         shaders[i].setParameter("col", sf::Vector3f(1.0,0.0,0.0));
         shaders[i].setParameter("shift", (float)std::min(x,y) / 2.0);
         shaders[i].setParameter("iter",(float)bufSize / 2.0);
-        shaders[i].setParameter("zoom",zoom);
-        shaders[i].setParameter("dx",dx);
-        shaders[i].setParameter("dy",dy);
+        shaders[i].setParameter("zoom",zoom[i]);
+        shaders[i].setParameter("dx",dx[i]);
+        shaders[i].setParameter("dy",dy[i]);
+        shaders[i].setParameter("brightness", brightness[i]);
     }
     shaders[2].setParameter("c", sf::Vector2f(0,0));
     bool cal = false;
@@ -90,8 +95,8 @@ int main()
                     float v = (float)sf::Mouse::getPosition(window).y;
                     sf::Vector2f UV = sf::Vector2f(((u - (float)std::min(x,y)/2.0)  / std::min(x,y) * 4.0 - 2.0),(v / std::min(x,y) * 4.0 - 2.0));
                     
-                    UV *= zoom;
-                    UV += sf::Vector2f(dx,-dy);
+                    UV *= zoom[mode];
+                    UV += sf::Vector2f(dx[mode],-dy[mode]);
                     if(mode < 2){
                         sf::Vector2f z = sf::Vector2f(0.0f,0.0f);
                         
@@ -114,7 +119,7 @@ int main()
                             }
                             samp[idx] = (sf::Int16)std::min(std::max(dpx * t * volume, -32000.0),32000.0);
                             samp[idx + 1] =(sf::Int16)std::min(std::max(dpy * t * volume, -32000.0),32000.0);
-                            lines[i] = conv(z,x,y,zoom,dx,dy);
+                            lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
                             lines[i].color = sf::Color::Red;
                             if(mode != 1){
                                 z = mult(z,z) + UV;
@@ -147,7 +152,7 @@ int main()
                             }
                             samp[idx] = (sf::Int16)std::min(std::max(dpx * t * volume, -32000.0),32000.0);
                             samp[idx + 1] =(sf::Int16)std::min(std::max(dpy * t * volume, -32000.0),32000.0);
-                            lines[i] = conv(z,x,y,zoom,dx,dy);
+                            lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
                             lines[i].color = sf::Color::Red;
                             z = mult(z,z) + currentC;
                             idx += 2;
@@ -161,8 +166,8 @@ int main()
         
             
             if(event.type == sf::Event::MouseWheelMoved){
-                zoom *= std::pow(2.0,-event.mouseWheel.delta);
-                shaders[mode].setParameter("zoom",zoom);
+                zoom[mode] *= std::pow(2.0,-event.mouseWheel.delta);
+                shaders[mode].setParameter("zoom",zoom[mode]);
                 cal = false;
             }
             if(event.type == sf::Event::KeyReleased){
@@ -172,23 +177,23 @@ int main()
             }
             if(event.type == sf::Event::KeyPressed){
                 if(event.key.code == sf::Keyboard::Left){
-                    dx -= 0.1 * zoom * 4.0;
+                    dx[mode] -= 0.1 * zoom[mode] * 4.0;
                     cal = false;
                 }
                 if(event.key.code == sf::Keyboard::Right){
-                    dx += 0.1 * zoom  * 4.0;
+                    dx[mode] += 0.1 * zoom[mode]  * 4.0;
                     cal = false;
                 }
                 if(event.key.code == sf:: Keyboard::Down){
-                    dy -= 0.1 * zoom * 4.0;
+                    dy[mode] -= 0.1 * zoom[mode] * 4.0;
                     cal = false;
                 }
                 if(event.key.code == sf:: Keyboard::Up){
-                    dy += 0.1 * zoom * 4.0;
+                    dy[mode] += 0.1 * zoom[mode] * 4.0;
                     cal = false;
                 }
-                shaders[mode].setParameter("dx",dx);
-                shaders[mode].setParameter("dy",dy);
+                shaders[mode].setParameter("dx",dx[mode]);
+                shaders[mode].setParameter("dy",dy[mode]);
                 if(event.key.code == sf::Keyboard::Num1){
                     if(mode != 0){
                         mode =0;
@@ -210,12 +215,12 @@ int main()
                 }
                 
                 if(event.key.code == sf::Keyboard::Equal){
-                    brightness /= 2.;
-                    shaders[mode].setUniform("brightness", brightness);
+                    brightness[mode] /= 2.;
+                    shaders[mode].setUniform("brightness", brightness[mode]);
                 }
                 if(event.key.code == sf::Keyboard::Dash){
-                    brightness *= 2.;
-                    shaders[mode].setUniform("brightness", brightness);
+                    brightness[mode] *= 2.;
+                    shaders[mode].setUniform("brightness", brightness[mode]);
                 }
                 if(event.key.shift){
                     shifting = true;
@@ -239,3 +244,4 @@ int main()
     }
     return 0;
 }
+
