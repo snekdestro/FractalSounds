@@ -85,6 +85,7 @@ int main()
            
             if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
                 if(shifting && mode > 1){
+                    cal = false;
                     float u = (float)sf::Mouse::getPosition(window).x;
                     float v = (float)sf::Mouse::getPosition(window).y;
                     currentC = sf::Vector2f(((u - (float)std::min(x,y)/2.0)  / std::min(x,y) * 4.0 - 2.0),(v / std::min(x,y) * 4.0 - 2.0));

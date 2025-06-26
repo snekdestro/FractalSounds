@@ -18,9 +18,9 @@ void main()
     float u = (gl_FragCoord.x-shift) / res * 4 - 2.0;
     float v = (gl_FragCoord.y) / res * 4 - 2.0;
 
-    vec2 z  = vec2(u,v);
+    vec2 z  = vec2(u,-v);
     z *= zoom;
-    z += vec2(dx,dy);
+    z += vec2(dx,-dy);
     bool esc = false;
     float i = 0.0;
     for(; i  < iter; i++){
