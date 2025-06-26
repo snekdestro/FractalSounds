@@ -47,12 +47,14 @@ int main()
     float zoom[4];
     float dx[4];
     float dy[4];
+    int pow[4];
     auto x = sf::VideoMode::getDesktopMode().width;
     auto y = sf::VideoMode::getDesktopMode().height;
     sf::RenderWindow window(sf::VideoMode(x, y,32), "Fractal Sounds");
     sf::RectangleShape shape(sf::Vector2f(x,y));
     //shape.setFillColor(sf::Color::Green);
     for(int i = 0; i < 4; i++){
+        pow[i] = 2;
         currentC[i] = {0,0};
         brightness[i] = 1000.;
         zoom[i] = 1;
@@ -66,6 +68,7 @@ int main()
         shaders[i].setParameter("dx",dx[i]);
         shaders[i].setParameter("dy",dy[i]);
         shaders[i].setParameter("brightness", brightness[i]);
+        shaders[i].setUniform("pow", pow[i]);
     }
     shaders[2].setParameter("c", sf::Vector2f(0,0));
     shaders[3].setParameter("c", sf::Vector2f(0,0));
@@ -128,9 +131,17 @@ int main()
                             lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
                             lines[i].color = sf::Color::Red;
                             if(mode != 1){
-                                z = mult(z,z) + UV;
+                                sf::Vector2f cop = z;
+                                for(int i = 1; i < pow[mode]; i++){
+                                    z = mult(cop,z);
+                                }
+                                z+= UV;
                             }else{
-                                z = mult(vecAbs(z),vecAbs(z)) + UV;
+                                sf::Vector2f cop = vecAbs(z);
+                                for(int i = 1; i < pow[mode]; i++){
+                                    z = mult(cop, vecAbs(z));
+                                }
+                                z+= UV;
                             }
 
                             idx += 2;
@@ -161,7 +172,11 @@ int main()
                                 samp[idx + 1] =(sf::Int16)std::min(std::max(dpy * t * volume, -32000.0),32000.0);
                                 lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
                                 lines[i].color = sf::Color::Red;
-                                z = mult(z,z) + currentC[mode];
+                                sf::Vector2f cop = z;
+                                for(int i = 1; i < pow[mode]; i++){
+                                    z = mult(cop,z);
+                                }
+                                z+= currentC[mode];
                                 idx += 2;
                                 
                             }
@@ -185,7 +200,9 @@ int main()
                                 samp[idx + 1] =(sf::Int16)std::min(std::max(dpy * t * volume, -32000.0),32000.0);
                                 lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
                                 lines[i].color = sf::Color::Red;
-                                z = mult(complexSin(z),currentC[mode]);
+                                for(int i = 1; i < 2; i++){
+                                    z = mult(complexSin(z),currentC[mode]);
+                                }
                                 idx += 2;
                                 
                             }
@@ -259,9 +276,20 @@ int main()
                     brightness[mode] *= 2.;
                     shaders[mode].setUniform("brightness", brightness[mode]);
                 }
+                if(event.key.code ==sf::Keyboard::J){
+                    if(pow[mode] > 2){
+                        pow[mode]--;
+                        shaders[mode].setUniform("pow",pow[mode]);
+                    }
+                }
+                if(event.key.code == sf::Keyboard::K){
+                    pow[mode]++;
+                    shaders[mode].setUniform("pow",pow[mode]);
+                }
                 if(event.key.shift){
                     shifting = true;
                 }
+
                 
             }
         }

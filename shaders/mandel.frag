@@ -6,7 +6,7 @@ uniform float zoom;
 uniform float dx;
 uniform float dy;
 uniform float brightness;
-
+uniform int pow;
 
 vec2 mult(vec2 a, vec2 b){
     return vec2(a.x *b.x - a.y * b.y, a.x * b.y + a.y * b.x);
@@ -25,9 +25,14 @@ void main()
     bool esc = false;
     float i = 0.0;
     for(; i  < iter; i++){
-        z = mult(z,z);
+
+        vec2 cop = z;
+        for(int i = 1; i < pow; i++){
+            cop = mult(cop,z);
+        }
+        z = cop;
         z = z + c;
-        if(length(z) >= 2.0){
+        if(length(z) >= 2){
             esc = true;
             break;
         }
