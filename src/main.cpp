@@ -23,6 +23,14 @@ sf::Vector2f complexSin(sf::Vector2f a){
 sf::Vector2f mult(sf::Vector2f a, sf::Vector2f b){
     return sf::Vector2f(a.x * b.x - b.y * a.y, a.x * b.y + a.y * b.x);
 }
+sf::Vector2f div(sf::Vector2f x, sf::Vector2f y){
+    float denom = y.x * y.x + y.y * y.y; 
+    float real = (x.x * y.x + x.y * y.y) / denom;
+    float imag = (x.y * y.x - x.x * y.y) / denom;
+    return sf::Vector2f(real,imag);
+}
+
+
 float len(sf::Vector2f a){
     return std::sqrt(a.x * a.x + a.y * a.y);
 }
@@ -30,30 +38,32 @@ float len(sf::Vector2f a){
 
 int main()
 {
-    sf::Vector2f currentC[4];
+    sf::Vector2f currentC[5];
     bool shifting = false;
-    sf::Shader shaders[4];
+    sf::Shader shaders[5];
     shaders[0].loadFromFile("shaders/mandel.frag",sf::Shader::Fragment);
     shaders[1].loadFromFile("shaders/burningship.frag", sf::Shader::Fragment);
     shaders[2].loadFromFile("shaders/julia.frag", sf::Shader::Fragment);
     shaders[3].loadFromFile("shaders/juliasin.frag", sf::Shader::Fragment);
-    float brightness[4];
+    shaders[4].loadFromFile("shaders/rings.frag", sf::Shader::Fragment);
+    float brightness[5];
     int mode = 0;
     const int bufSize = 4096;
     const double sample_rate = 44100.0;
     const int max_freq = 4000;
     const double volume = 8000.0;
     const double decay = 0.990;
-    float zoom[4];
-    float dx[4];
-    float dy[4];
-    int pow[4];
+    const float sig = sqrt(3);
+    float zoom[5];
+    float dx[5];
+    float dy[5];
+    int pow[5];
     auto x = sf::VideoMode::getDesktopMode().width;
     auto y = sf::VideoMode::getDesktopMode().height;
     sf::RenderWindow window(sf::VideoMode(x, y,32), "Fractal Sounds");
     sf::RectangleShape shape(sf::Vector2f(x,y));
     //shape.setFillColor(sf::Color::Green);
-    for(int i = 0; i < 4; i++){
+    for(int i = 0; i < 5; i++){
         pow[i] = 2;
         currentC[i] = {0,0};
         brightness[i] = 1000.;
@@ -200,13 +210,46 @@ int main()
                                 samp[idx + 1] =(sf::Int16)std::min(std::max(dpy * t * volume, -32000.0),32000.0);
                                 lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
                                 lines[i].color = sf::Color::Red;
-                                for(int i = 1; i < 2; i++){
+                                for(int i = 1; i < pow[mode]; i++){
                                     z = mult(complexSin(z),currentC[mode]);
                                 }
                                 idx += 2;
                                 
                             }
                         }
+                        else if(mode == 4){
+                            for(int i =0; i  < bufSize / 2; i++){
+                                if(len(z) > 2){
+                                    cal = false;
+                                    break;
+                                }
+                                int j = i % steps;
+                                double t = double(j) / double(steps);
+                                t = 0.5 - 0.5*std::cos(t * 3.14159);
+                                double dpx = z.x;
+                                double dpy = z.y;
+                                double m = dpx * dpx + dpy * dpy;
+                                if(m > 2.0){
+                                    dpx *= 2.0 / m;
+                                    dpy *= 2.0 / m;
+                                }
+                                samp[idx] = (sf::Int16)std::min(std::max(dpx * t * volume, -32000.0),32000.0);
+                                samp[idx + 1] =(sf::Int16)std::min(std::max(dpy * t * volume, -32000.0),32000.0);
+                                lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
+                                lines[i].color = sf::Color::Red;
+                                sf::Vector2f cop = z;
+                                for(int i = 1; i < pow[mode]; i++){
+                                    cop = mult(cop,z);
+                                }
+                                sf::Vector2f top = mult(mult(cop, cop + (sf::Vector2f(sig,0))),currentC[mode]);
+                                sf::Vector2f bot = sig * cop + sf::Vector2f(1.0,0);
+                                z = div(top,bot);
+        
+                                idx += 2;
+                                
+                            }
+                        }
+
                     }
                 }
                     
@@ -268,6 +311,12 @@ int main()
                         cal = false;
                     }
                 }
+                if(event.key.code == sf::Keyboard::Num5){
+                    if(mode != 4){
+                        mode = 4;
+                        cal = false;
+                    }
+                }
                 if(event.key.code == sf::Keyboard::Equal){
                     brightness[mode] /= 2.;
                     shaders[mode].setUniform("brightness", brightness[mode]);
@@ -282,6 +331,7 @@ int main()
                         shaders[mode].setUniform("pow",pow[mode]);
                     }
                 }
+            
                 if(event.key.code == sf::Keyboard::K){
                     pow[mode]++;
                     shaders[mode].setUniform("pow",pow[mode]);
