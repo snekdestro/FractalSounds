@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <math.h>
-#include <windows.h>
+
 
 
 sf::Vector2f conv(sf::Vector2f UV,int x, int y, float zoom, float dx, float dy){
