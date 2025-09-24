@@ -6,7 +6,7 @@ uniform float zoom;
 uniform float dx;
 uniform float dy;
 uniform float brightness;
-uniform int pow;
+uniform int power;
 
 vec2 vecAb(vec2 a){
     return vec2(abs(a.x), abs(a.y));
@@ -32,7 +32,7 @@ void main()
     float i = 0.0;
     for(; i  < iter; i++){
         vec2 cop = z;
-        for(int i = 1; i < pow; i++){
+        for(int i = 1; i < power; i++){
             cop = mult(cop,z);
         }
         z = cop;

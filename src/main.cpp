@@ -78,7 +78,7 @@ int main()
         shaders[i].setParameter("dx",dx[i]);
         shaders[i].setParameter("dy",dy[i]);
         shaders[i].setParameter("brightness", brightness[i]);
-        shaders[i].setUniform("pow", pow[i]);
+        shaders[i].setUniform("power", pow[i]);
     }
     shaders[2].setParameter("c", sf::Vector2f(0,0));
     shaders[3].setParameter("c", sf::Vector2f(0,0));
@@ -228,11 +228,7 @@ int main()
                                 t = 0.5 - 0.5*std::cos(t * 3.14159);
                                 double dpx = z.x;
                                 double dpy = z.y;
-                                double m = dpx * dpx + dpy * dpy;
-                                if(m > 2.0){
-                                    dpx *= 2.0 / m;
-                                    dpy *= 2.0 / m;
-                                }
+                                
                                 samp[idx] = (sf::Int16)std::min(std::max(dpx * t * volume, -32000.0),32000.0);
                                 samp[idx + 1] =(sf::Int16)std::min(std::max(dpy * t * volume, -32000.0),32000.0);
                                 lines[i] = conv(z,x,y,zoom[mode],dx[mode],dy[mode]);
@@ -328,13 +324,13 @@ int main()
                 if(event.key.code ==sf::Keyboard::J){
                     if(pow[mode] > 2){
                         pow[mode]--;
-                        shaders[mode].setUniform("pow",pow[mode]);
+                        shaders[mode].setUniform("power",pow[mode]);
                     }
                 }
             
                 if(event.key.code == sf::Keyboard::K){
                     pow[mode]++;
-                    shaders[mode].setUniform("pow",pow[mode]);
+                    shaders[mode].setUniform("power",pow[mode]);
                 }
                 if(event.key.shift){
                     shifting = true;

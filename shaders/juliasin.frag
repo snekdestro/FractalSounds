@@ -7,7 +7,7 @@ uniform float dx;
 uniform float dy;
 uniform float brightness;
 uniform vec2 c;
-uniform int pow;
+uniform int power;
 vec2 mult(vec2 a, vec2 b){
     return vec2(a.x *b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
@@ -44,7 +44,7 @@ void main()
     bool esc = false;
     float i = 0.0;
     for(; i  < iter; i++){
-        for(int i = 1; i < pow; i++){
+        for(int i = 1; i < power; i++){
             z = mult(coomplexsin(z),c);
         }
 

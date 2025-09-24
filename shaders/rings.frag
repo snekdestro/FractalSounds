@@ -8,7 +8,7 @@ uniform float dy;
 uniform float brightness;
 uniform vec2 c;
 //const vec2 c = vec2(0.73736888,-0.67549029); //constant version
-uniform int pow;
+uniform int power;
 
 
 const float sig = sqrt(3.);
@@ -39,7 +39,7 @@ void main()
     for(; i  < iter; i++){
         zSum += z;
         vec2 cop = z;
-        for(int i = 1; i < pow; i++){
+        for(int i = 1; i < power; i++){
             cop = mult(cop,z);
         }
 
@@ -49,16 +49,13 @@ void main()
         vec2 bot = sig * cop + vec2(1.0,0.0);
         z = div(top,bot);
         
-        if(length(z) >= 2){
-            esc = true;
-            break;
-        }
+        
     }
     
     float mag = length(zSum);
-    
+    float cvv = 1-pow(2.0,-mag);
 
-    gl_FragColor = esc? vec4(col  *  vec3(i / brightness), 1.0) : vec4(0.0,0.0,1.0/mag,1.0);
+    gl_FragColor = esc? vec4(col  *  vec3(i / brightness), 1.0) : vec4(0.0,0.0,cvv,1.0);
     //gl_FragColor = esc? vec4(col  *  vec3(i / brightness), 1.0) : vec4(0.0,0.0,0.0,1.0);
 
 }
